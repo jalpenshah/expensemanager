@@ -15,7 +15,6 @@ import {
 import 'react-datepicker/dist/react-datepicker.css';
 import { Loading, HScroll, PageHeader, DatePicker } from 'components';
 import { useAppContent } from 'contexts';
-import useAxios from 'hooks/useAxios';
 import { useEffect } from 'react';
 import {
   getAxios,
@@ -44,14 +43,16 @@ export const AddTransaction = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [formInputs, setFormInputs] = useState(blankFormInputs);
 
-  const { response } = useAxios({
-    method: 'get',
-    url: '/api/v1/categories/list',
-  });
-
   useEffect(() => {
-    setCategories(response?.data.length > 0 ? response?.data : []);
-  }, [response, setCategories]);
+    const token = fetchLocalStorageData('user').token;
+    getAxios(token)
+      .get('/api/v1/categories/list')
+      .then((response) => {
+        setCategories(
+          response?.data?.data.length > 0 ? response.data.data : []
+        );
+      });
+  }, [setCategories]);
 
   const onChangeHandler = (e) => {
     if (e.target.name === 'category') {

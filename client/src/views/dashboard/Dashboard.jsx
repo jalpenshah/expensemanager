@@ -124,7 +124,6 @@ ${data.value}`;
   };
 
   const removeExpense = (id) => {
-    console.log('assad', id);
     const token = user?.token;
     getAxios(token)
       .post(`/api/v1/expenses/remove`, {

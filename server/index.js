@@ -7,7 +7,7 @@ import app from './src/app';
 import db from './src/configs/database';
 
 const start = async () => {
-  // db.sync();
+  db.sync();
   app.listen(process.env.API_PORT || 4004, () => {
     logger.info(
       `Expense manager API is running at port ${process.env.API_PORT}`

@@ -51,6 +51,7 @@ app.get('/', (req, res) => {
       author: 'Jalpen Shah',
       contact: 'hi@jalpenshah.com',
       github: 'https://github.com/shahjalpen',
+      application: 'https://expensemanager.jalpenshah.com',
     })
     .status(200);
 });

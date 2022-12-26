@@ -26,8 +26,6 @@ const sendMail = (to, subject, bodyParams) => {
       'templates',
       `${templateMap[template]}.ejs`
     );
-    console.log('templateFilePath', templateFilePath);
-    console.log('params', params);
     ejs.renderFile(templateFilePath, { ...params }, (err, data) => {
       if (err) {
         console.log(err);

@@ -30,6 +30,9 @@
     "styled-components": "^5.3.6",
     "web-vitals": "^2.1.4"
   },
+  "devDependencies": {
+    "babel-types": "^6.26.0"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
