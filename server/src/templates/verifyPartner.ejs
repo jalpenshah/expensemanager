@@ -1,0 +1,14 @@
+<%- include('./layouts/header.ejs') %>
+
+<div
+  style="margin: 0 auto; max-width: 720px; padding: 50px 0"
+>
+  <div>Hi,</div>
+  <div><p><a href="mailto:<%= userEmail %>"><%= userEmail %></a> is trying to add you as a partner in https://expensemanager.jalpenshah.com.</p>
+  </div>
+  <div><p>If you agree to share your data and make <a href="mailto:<%= userEmail %>"><%= userEmail %></a> as partner, please click on the button below</p></div>
+  <div style="text-align: center; margin-top: 30px;"><a style="padding: 10px 20px; background: #2c2c2c; border-radius: 8px; color: white; text-decoration: none;" 
+    href="https://expensemanager.jalpenshah.com/verify-partner/<%= userId %>" target="_blank">Verify</button></div>
+</div>
+
+<%- include('./layouts/footer.ejs') %>

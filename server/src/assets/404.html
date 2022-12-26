@@ -1,0 +1,84 @@
+<html>
+  <head>
+    <style>
+      .center-xy {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        position: absolute;
+      }
+      html,
+      body {
+        font-family: "Roboto Mono", monospace;
+        font-size: 16px;
+      }
+      html {
+        box-sizing: border-box;
+        user-select: none;
+      }
+      body {
+        background-color: #000;
+      }
+      *,
+      *:before,
+      *:after {
+        box-sizing: inherit;
+      }
+      .container {
+        width: 100%;
+      }
+      .copy-container {
+        text-align: center;
+      }
+      p {
+        color: #fff;
+        font-size: 24px;
+        letter-spacing: 0.2px;
+        margin: 0;
+      }
+      @keyframes blink-animation {
+        to {
+          visibility: hidden;
+        }
+      }
+      @-webkit-keyframes blink-animation {
+        to {
+          visibility: hidden;
+        }
+      }
+      .handle {
+        background: #ffe500;
+        width: 14px;
+        height: 30px;
+        top: 0;
+        left: -20px;
+        margin-top: 1px;
+        position: absolute;
+        opacity: 1;
+        animation: blink-animation 1s steps(5, start) infinite;
+        -webkit-animation: blink-animation 1s steps(5, start) infinite;
+      }
+      #cb-replay {
+        fill: #666;
+        width: 20px;
+        margin: 15px;
+        right: 0;
+        bottom: 0;
+        position: absolute;
+        overflow: inherit;
+        cursor: pointer;
+      }
+      #cb-replay:hover {
+        fill: #888;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="copy-container center-xy">
+        <p>404, no resource found!</p>
+        <span class="handle"></span>
+      </div>
+    </div>
+  </body>
+</html>
