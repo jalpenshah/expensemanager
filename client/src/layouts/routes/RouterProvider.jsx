@@ -7,8 +7,9 @@ import {
   Friends,
   Setup,
   Dashboard,
+  Transactions,
+  VerifyPartner,
 } from 'views';
-import { VerifyPartner } from 'views/verify-partner/VerifyPartner';
 
 export const RouterProvider = () => {
   return (
@@ -20,6 +21,7 @@ export const RouterProvider = () => {
       <Route exact path="/manage-friend" element={<ManageFriend />}></Route>
       <Route exact path="/manage-category" element={<ManageCategory />}></Route>
       <Route exact path="/add-transaction" element={<AddTransaction />}></Route>
+      <Route exact path="/transactions" element={<Transactions />}></Route>
       <Route exact path="/setup" element={<Setup />}></Route>
       <Route exact path="/dashboard" element={<Dashboard />}></Route>
       <Route

@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 const menuArray = [
   { title: 'Dashboard', to: '/dashboard' },
   { title: 'Add Transaction', to: '/' },
+  { title: 'Transactions', to: '/transactions' },
   { title: 'Manage Friends', to: '/manage-friend' },
   { title: 'Manage Categories', to: '/manage-category' },
   { title: 'Setup', to: '/setup' },

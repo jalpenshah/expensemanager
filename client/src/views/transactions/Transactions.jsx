@@ -13,15 +13,16 @@ import {
   Th,
   Td,
   TableContainer,
+  useToast,
 } from '@chakra-ui/react';
-import { Pie } from '@ant-design/plots';
+import { DeleteIcon } from '@chakra-ui/icons';
 import { PageHeader, Loading } from 'components';
 import { useAuth } from 'contexts';
-import { roundUpNumber } from 'utils';
-import { color20, color10 } from 'config/colors';
+import { formatDate } from 'utils';
 import { NoDataFound } from 'assets/images';
 
-export const Dashboard = () => {
+export const Transactions = () => {
+  const toast = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -29,7 +30,6 @@ export const Dashboard = () => {
   const [paidBy, setPaidBy] = useState('we');
 
   const [transactionData, setTransactionData] = useState([]);
-  const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
     const token = user?.token;
@@ -63,66 +63,40 @@ export const Dashboard = () => {
     }
   }, [user, selectedMonth, selectedYear, paidBy]);
 
-  useEffect(() => {
-    setLoading(true);
-    const categoryMap = {};
-    const chartDataInternal = [];
-    transactionData.forEach((data) => {
-      const amount = parseFloat(data.amount);
-      categoryMap[data.category] = categoryMap[data.category]
-        ? parseFloat(categoryMap[data.category]) + amount
-        : amount;
-    });
-    Object.keys(categoryMap).forEach((category) => {
-      chartDataInternal.push({ type: category, value: categoryMap[category] });
-    });
-    setChartData(chartDataInternal);
-    setLoading(false);
-  }, [transactionData]);
-
-  const chartConfig = {
-    appendPadding: 10,
-    data: chartData,
-    angleField: 'value',
-    colorField: 'type',
-    radius: 1,
-    legend: {
-      type: 'continue',
-      layout: 'vertical',
-      position: 'bottom',
-      flipPage: false,
-    },
-    theme: {
-      colors20: color20,
-      colors10: color10,
-    },
-    label: {
-      type: 'inner',
-      offset: '-8%',
-      formatter: (data) => {
-        return `${data.type} (${roundUpNumber(data.percent * 100, 2)}%) 
-${roundUpNumber(data.value, 2)}`;
-      },
-      style: {
-        fontSize: 12,
-      },
-    },
-    interactions: [
-      {
-        type: 'element-selected',
-      },
-      {
-        type: 'element-active',
-      },
-    ],
-  };
-
   const updateMonth = (e) => {
     setSelectedMonth(e.target.value);
   };
 
   const updateYear = (e) => {
     setSelectedYear(e.target.value);
+  };
+
+  const removeExpense = (id) => {
+    const token = user?.token;
+    getAxios(token)
+      .post(`/api/v1/expenses/remove`, {
+        id: id,
+      })
+      .then((res) => {
+        setTransactionData(transactionData.filter((data) => data.id !== id));
+        toast({
+          title: 'Success!',
+          description: 'Delete record successfully!',
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
+        });
+      })
+      .catch((error) => {
+        toast({
+          title: 'Failed!',
+          description:
+            'We faced some issue removing the row. Please try later!',
+          status: 'error',
+          duration: 2000,
+          isClosable: true,
+        });
+      });
   };
 
   if (loading) return <Loading />;
@@ -159,32 +133,37 @@ ${roundUpNumber(data.value, 2)}`;
           </Select>
         </Flex>
       </Box>
-      {chartData.length > 0 ? (
-        <>
-          <Box>
-            {Object.keys(chartConfig).length > 0 && <Pie {...chartConfig} />}
-          </Box>
-          <Box>
-            <TableContainer>
-              <Table size="sm">
-                <Thead>
-                  <Tr>
-                    <Th>Category</Th>
-                    <Th isNumeric>Amount</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {chartData.map((data, index) => (
-                    <Tr key={index}>
-                      <Td>{data.type}</Td>
-                      <Td isNumeric>{roundUpNumber(data.value, 2)}</Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
-            </TableContainer>
-          </Box>
-        </>
+      {transactionData.length > 0 ? (
+        <TableContainer>
+          <Table size="sm">
+            <Thead>
+              <Tr>
+                <Th>Date</Th>
+                <Th>Category</Th>
+                <Th isNumeric>Amount</Th>
+                <Th>Title</Th>
+                <Th>Paid By</Th>
+                <Th>Delete</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {transactionData.map((data, index) => (
+                <Tr key={index}>
+                  <Td>{formatDate(new Date(data.date), 'DD MMM')}</Td>
+                  <Td>{data.category}</Td>
+                  <Td isNumeric>{data.amount}</Td>
+                  <Td overflowWrap={'break-word'} wordBreak={'break-word'}>
+                    <Text>{data.title}</Text>
+                  </Td>
+                  <Td>{data.paid_by === user.email ? 'Me' : 'Partner'}</Td>
+                  <Td>
+                    <DeleteIcon onClick={() => removeExpense(data.id)} />
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
       ) : (
         <Box>
           <Flex
