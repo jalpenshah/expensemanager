@@ -7,3 +7,4 @@ export { LoadingText } from './loading/LoadingText';
 export { GradientIcon } from './gradient-icon/GradientIcon';
 export { FullScreen } from './full-screen/FullScreen';
 export { DatePicker } from './date-picker/DatePicker';
+export { SortedTable } from './sorted-table/SortedTable';

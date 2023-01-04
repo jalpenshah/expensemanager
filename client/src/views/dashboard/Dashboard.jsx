@@ -6,19 +6,12 @@ import {
   Select,
   Image,
   Text,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
   Stack,
   Badge,
   Center,
-  TableContainer,
 } from '@chakra-ui/react';
 import { Pie } from '@ant-design/plots';
-import { PageHeader, Loading } from 'components';
+import { PageHeader, Loading, SortedTable } from 'components';
 import { useAuth } from 'contexts';
 import { roundUpNumber } from 'utils';
 import { color20, color10 } from 'config/colors';
@@ -34,6 +27,20 @@ export const Dashboard = () => {
   const [transactionData, setTransactionData] = useState([]);
   const [chartData, setChartData] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
+  const tableCategory = [
+    {
+      Header: 'Category',
+      accessor: 'category',
+    },
+    {
+      Header: 'Amount',
+      accessor: 'amount',
+      isNumeric: true,
+      isSorted: true,
+      sortDescFirst: true,
+    },
+  ];
+  const [tableData, setTableData] = useState([]);
 
   useEffect(() => {
     const token = user?.token;
@@ -71,6 +78,7 @@ export const Dashboard = () => {
     setLoading(true);
     const categoryMap = {};
     const chartDataInternal = [];
+    const tableDataInternal = [];
     let sum = 0;
     transactionData.forEach((data) => {
       const amount = parseFloat(data.amount);
@@ -80,10 +88,16 @@ export const Dashboard = () => {
         : amount;
     });
     setTotalAmount(sum);
+
     Object.keys(categoryMap).forEach((category) => {
       chartDataInternal.push({ type: category, value: categoryMap[category] });
+      tableDataInternal.push({
+        category: category,
+        amount: roundUpNumber(categoryMap[category], 2),
+      });
     });
     setChartData(chartDataInternal);
+    setTableData(tableDataInternal);
     setLoading(false);
   }, [transactionData]);
 
@@ -96,8 +110,10 @@ export const Dashboard = () => {
     legend: {
       type: 'continue',
       layout: 'vertical',
-      position: 'bottom',
+      position: 'top',
       flipPage: false,
+      reversed: true,
+      slidable: true,
     },
     theme: {
       colors20: color20,
@@ -183,25 +199,12 @@ ${roundUpNumber(data.value, 2)}`;
           <Box>
             {Object.keys(chartConfig).length > 0 && <Pie {...chartConfig} />}
           </Box>
-          <Box>
-            <TableContainer>
-              <Table size="sm">
-                <Thead>
-                  <Tr>
-                    <Th>Category</Th>
-                    <Th isNumeric>Amount</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {chartData.map((data, index) => (
-                    <Tr key={index}>
-                      <Td>{data.type}</Td>
-                      <Td isNumeric>{roundUpNumber(data.value, 2)}</Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
-            </TableContainer>
+          <Box paddingTop={2}>
+            <SortedTable
+              columns={tableCategory}
+              data={tableData}
+              sortByColumn="amount"
+            />
           </Box>
         </>
       ) : (
