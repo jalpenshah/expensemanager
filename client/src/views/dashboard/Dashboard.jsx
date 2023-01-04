@@ -12,6 +12,9 @@ import {
   Tr,
   Th,
   Td,
+  Stack,
+  Badge,
+  Center,
   TableContainer,
 } from '@chakra-ui/react';
 import { Pie } from '@ant-design/plots';
@@ -30,6 +33,7 @@ export const Dashboard = () => {
 
   const [transactionData, setTransactionData] = useState([]);
   const [chartData, setChartData] = useState([]);
+  const [totalAmount, setTotalAmount] = useState(0);
 
   useEffect(() => {
     const token = user?.token;
@@ -67,12 +71,15 @@ export const Dashboard = () => {
     setLoading(true);
     const categoryMap = {};
     const chartDataInternal = [];
+    let sum = 0;
     transactionData.forEach((data) => {
       const amount = parseFloat(data.amount);
+      sum += amount;
       categoryMap[data.category] = categoryMap[data.category]
         ? parseFloat(categoryMap[data.category]) + amount
         : amount;
     });
+    setTotalAmount(sum);
     Object.keys(categoryMap).forEach((category) => {
       chartDataInternal.push({ type: category, value: categoryMap[category] });
     });
@@ -161,6 +168,18 @@ ${roundUpNumber(data.value, 2)}`;
       </Box>
       {chartData.length > 0 ? (
         <>
+          <Box>
+            <Center>
+              <Stack direction="row">
+                <Badge variant="outline" colorScheme="green">
+                  Total Expense
+                </Badge>
+                <Badge variant="solid" colorScheme="green">
+                  {totalAmount}
+                </Badge>
+              </Stack>
+            </Center>
+          </Box>
           <Box>
             {Object.keys(chartConfig).length > 0 && <Pie {...chartConfig} />}
           </Box>
