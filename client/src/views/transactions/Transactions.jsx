@@ -1,22 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { getAxios } from 'utils';
-import {
-  Box,
-  Flex,
-  Select,
-  Image,
-  Text,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  TableContainer,
-  useToast,
-} from '@chakra-ui/react';
+import { Box, Flex, Select, Image, Text, useToast } from '@chakra-ui/react';
 import { DeleteIcon } from '@chakra-ui/icons';
-import { PageHeader, Loading } from 'components';
+import { PageHeader, Loading, SortedTable } from 'components';
 import { useAuth } from 'contexts';
 import { formatDate } from 'utils';
 import { NoDataFound } from 'assets/images';
@@ -29,47 +15,36 @@ export const Transactions = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [paidBy, setPaidBy] = useState('we');
 
-  const [transactionData, setTransactionData] = useState([]);
-
-  useEffect(() => {
-    const token = user?.token;
-    if (user) {
-      setLoading(true);
-      if (paidBy === 'we') {
-        getAxios(token)
-          .get(`/api/v1/expenses/monthly/${selectedYear}-${selectedMonth}`)
-          .then((res) => {
-            setLoading(false);
-            setTransactionData(res.data.data);
-          })
-          .catch((error) => {
-            setLoading(false);
-            console.log(error);
-          });
-      } else {
-        getAxios(token)
-          .get(
-            `/api/v1/expenses/monthly/${selectedYear}-${selectedMonth}/${paidBy}`
-          )
-          .then((res) => {
-            setLoading(false);
-            setTransactionData(res.data.data);
-          })
-          .catch((error) => {
-            setLoading(false);
-            console.log(error);
-          });
-      }
-    }
-  }, [user, selectedMonth, selectedYear, paidBy]);
-
-  const updateMonth = (e) => {
-    setSelectedMonth(e.target.value);
-  };
-
-  const updateYear = (e) => {
-    setSelectedYear(e.target.value);
-  };
+  const tableHeader = [
+    {
+      Header: 'Date',
+      accessor: 'date',
+      isSorted: true,
+      sortDescFirst: true,
+    },
+    {
+      Header: 'Category',
+      accessor: 'category',
+    },
+    {
+      Header: 'Amount',
+      accessor: 'amount',
+      isNumeric: true,
+    },
+    {
+      Header: 'Title',
+      accessor: 'title',
+    },
+    {
+      Header: 'Paid By',
+      accessor: 'paidBy',
+    },
+    {
+      Header: 'Delete',
+      accessor: 'delete',
+    },
+  ];
+  const [tableData, setTableData] = useState([]);
 
   const removeExpense = (id) => {
     const token = user?.token;
@@ -78,7 +53,7 @@ export const Transactions = () => {
         id: id,
       })
       .then((res) => {
-        setTransactionData(transactionData.filter((data) => data.id !== id));
+        setTableData(tableData.filter((data) => data.id !== id));
         toast({
           title: 'Success!',
           description: 'Delete record successfully!',
@@ -99,11 +74,73 @@ export const Transactions = () => {
       });
   };
 
+  useEffect(() => {
+    const token = user?.token;
+    if (user) {
+      setLoading(true);
+      if (paidBy === 'we') {
+        getAxios(token)
+          .get(`/api/v1/expenses/monthly/${selectedYear}-${selectedMonth}`)
+          .then((res) => {
+            const internalData = [];
+            setLoading(false);
+            res.data.data.forEach((data) => {
+              internalData.push({
+                date: formatDate(new Date(data.date), 'DD MMM'),
+                category: data.category,
+                amount: data.amount,
+                title: data.title,
+                paidBy: data.paid_by === user.email ? 'Me' : 'Partner',
+                delete: <DeleteIcon onClick={() => removeExpense(data.id)} />,
+              });
+            });
+            setTableData(internalData);
+          })
+          .catch((error) => {
+            setLoading(false);
+            console.log(error);
+          });
+      } else {
+        getAxios(token)
+          .get(
+            `/api/v1/expenses/monthly/${selectedYear}-${selectedMonth}/${paidBy}`
+          )
+          .then((res) => {
+            setLoading(false);
+            const internalData = [];
+            res.data.data.forEach((data) => {
+              internalData.push({
+                date: formatDate(new Date(data.date), 'DD MMM'),
+                category: data.category,
+                amount: data.amount,
+                title: data.title,
+                paidBy: data.paid_by === user.email ? 'Me' : 'Partner',
+                delete: <DeleteIcon onClick={() => removeExpense(data.id)} />,
+              });
+            });
+            setTableData(internalData);
+          })
+          .catch((error) => {
+            setLoading(false);
+            console.log(error);
+          });
+      }
+    }
+  }, [user, selectedMonth, selectedYear, paidBy]);
+
+  const updateMonth = (e) => {
+    setSelectedMonth(e.target.value);
+  };
+
+  const updateYear = (e) => {
+    setSelectedYear(e.target.value);
+  };
+
   if (loading) return <Loading />;
 
   return (
     <Box>
-      <PageHeader title="Dashboard" />
+      <PageHeader title="Transactions" />
       <Box paddingBottom={2}>
         <Text> Select Month and Year</Text>
         <Flex gap={2}>
@@ -133,37 +170,10 @@ export const Transactions = () => {
           </Select>
         </Flex>
       </Box>
-      {transactionData.length > 0 ? (
-        <TableContainer>
-          <Table size="sm">
-            <Thead>
-              <Tr>
-                <Th>Date</Th>
-                <Th>Category</Th>
-                <Th isNumeric>Amount</Th>
-                <Th>Title</Th>
-                <Th>Paid By</Th>
-                <Th>Delete</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {transactionData.map((data, index) => (
-                <Tr key={index}>
-                  <Td>{formatDate(new Date(data.date), 'DD MMM')}</Td>
-                  <Td>{data.category}</Td>
-                  <Td isNumeric>{data.amount}</Td>
-                  <Td overflowWrap={'break-word'} wordBreak={'break-word'}>
-                    <Text>{data.title}</Text>
-                  </Td>
-                  <Td>{data.paid_by === user.email ? 'Me' : 'Partner'}</Td>
-                  <Td>
-                    <DeleteIcon onClick={() => removeExpense(data.id)} />
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
+      {tableData.length > 0 ? (
+        <Box maxWidth={'100%'} overflow={'scroll'}>
+          <SortedTable columns={tableHeader} data={tableData} />
+        </Box>
       ) : (
         <Box>
           <Flex

@@ -9,12 +9,14 @@ import {
   Stack,
   Badge,
   Center,
+  CloseButton,
+  Button,
 } from '@chakra-ui/react';
 import { Pie } from '@ant-design/plots';
-import { PageHeader, Loading, SortedTable } from 'components';
+import { PageHeader, Loading, SortedTable, FullScreen } from 'components';
 import { useAuth } from 'contexts';
-import { roundUpNumber } from 'utils';
-import { color20, color10 } from 'config/colors';
+import { formatDate, roundUpNumber } from 'utils';
+import { randomColors } from 'config/colors';
 import { NoDataFound } from 'assets/images';
 
 export const Dashboard = () => {
@@ -23,6 +25,30 @@ export const Dashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [paidBy, setPaidBy] = useState('we');
+  const [categoryView, setCategoryView] = useState(false);
+  const [categoricalData, setCategoricalData] = useState([]);
+
+  const categoricalHeader = [
+    {
+      Header: 'Date',
+      accessor: 'date',
+      isSorted: true,
+      sortDescFirst: true,
+    },
+    {
+      Header: 'Category',
+      accessor: 'category',
+    },
+    {
+      Header: 'Amount',
+      accessor: 'amount',
+      isNumeric: true,
+    },
+    {
+      Header: 'Title',
+      accessor: 'title',
+    },
+  ];
 
   const [transactionData, setTransactionData] = useState([]);
   const [chartData, setChartData] = useState([]);
@@ -38,6 +64,10 @@ export const Dashboard = () => {
       isNumeric: true,
       isSorted: true,
       sortDescFirst: true,
+    },
+    {
+      Header: '',
+      accessor: 'action',
     },
   ];
   const [tableData, setTableData] = useState([]);
@@ -74,6 +104,22 @@ export const Dashboard = () => {
     }
   }, [user, selectedMonth, selectedYear, paidBy]);
 
+  const handleCategoryView = (category) => {
+    const internalData = [];
+    transactionData
+      .filter((data) => data.category === category)
+      .forEach((data) => {
+        internalData.push({
+          date: formatDate(new Date(data.date), 'DD MMM'),
+          category: data.category,
+          amount: data.amount,
+          title: data.title,
+        });
+      });
+    setCategoricalData(internalData);
+    setCategoryView(true);
+  };
+
   useEffect(() => {
     setLoading(true);
     const categoryMap = {};
@@ -87,13 +133,26 @@ export const Dashboard = () => {
         ? parseFloat(categoryMap[data.category]) + amount
         : amount;
     });
-    setTotalAmount(sum);
+    setTotalAmount(roundUpNumber(sum, 2));
 
     Object.keys(categoryMap).forEach((category) => {
       chartDataInternal.push({ type: category, value: categoryMap[category] });
       tableDataInternal.push({
         category: category,
         amount: roundUpNumber(categoryMap[category], 2),
+        action: (
+          <Box>
+            <Button
+              title="View"
+              colorScheme="blue"
+              size="xs"
+              variant={'outline'}
+              onClick={() => handleCategoryView(category)}
+            >
+              View
+            </Button>
+          </Box>
+        ),
       });
     });
     setChartData(chartDataInternal);
@@ -116,8 +175,8 @@ export const Dashboard = () => {
       slidable: true,
     },
     theme: {
-      colors20: color20,
-      colors10: color10,
+      colors20: randomColors,
+      colors10: randomColors,
     },
     label: {
       type: 'inner',
@@ -218,6 +277,20 @@ ${roundUpNumber(data.value, 2)}`;
             <Image height="100%" src={NoDataFound} />
           </Flex>
         </Box>
+      )}
+
+      {categoryView && (
+        <FullScreen>
+          <Flex justifyContent={'end'}>
+            <CloseButton fontSize={20} onClick={() => setCategoryView(false)} />
+          </Flex>
+          <Center margin={4}>
+            <Text fontSize="xl">{categoricalData[0].category}</Text>
+          </Center>
+          <Box>
+            <SortedTable columns={categoricalHeader} data={categoricalData} />
+          </Box>
+        </FullScreen>
       )}
     </Box>
   );
