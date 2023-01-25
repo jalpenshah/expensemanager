@@ -243,7 +243,7 @@ ${roundUpNumber(data.value, 2)}`;
       </Box>
       {chartData.length > 0 ? (
         <>
-          <Box>
+          <Box paddingTop={2} paddingBottom={2}>
             <Center>
               <Stack direction="row">
                 <Badge variant="outline" colorScheme="green">

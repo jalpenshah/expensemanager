@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { getAxios } from 'utils';
-import { Box, Flex, Select, Image, Text, useToast } from '@chakra-ui/react';
+import { getAxios, roundUpNumber } from 'utils';
+import {
+  Box,
+  Flex,
+  Select,
+  Image,
+  Text,
+  Stack,
+  Badge,
+  Center,
+  useToast,
+} from '@chakra-ui/react';
 import { DeleteIcon } from '@chakra-ui/icons';
 import { PageHeader, Loading, SortedTable } from 'components';
 import { useAuth } from 'contexts';
@@ -14,6 +24,7 @@ export const Transactions = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [paidBy, setPaidBy] = useState('we');
+  const [totalAmount, setTotalAmount] = useState(0);
 
   const tableHeader = [
     {
@@ -84,6 +95,7 @@ export const Transactions = () => {
           .then((res) => {
             const internalData = [];
             setLoading(false);
+            let sum = 0;
             res.data.data.forEach((data) => {
               internalData.push({
                 date: formatDate(new Date(data.date), 'DD MMM'),
@@ -93,8 +105,10 @@ export const Transactions = () => {
                 paidBy: data.paid_by === user.email ? 'Me' : 'Partner',
                 delete: <DeleteIcon onClick={() => removeExpense(data.id)} />,
               });
+              sum = sum + parseFloat(data.amount);
             });
             setTableData(internalData);
+            setTotalAmount(roundUpNumber(sum, 2));
           })
           .catch((error) => {
             setLoading(false);
@@ -171,9 +185,23 @@ export const Transactions = () => {
         </Flex>
       </Box>
       {tableData.length > 0 ? (
-        <Box maxWidth={'100%'} overflow={'scroll'}>
-          <SortedTable columns={tableHeader} data={tableData} />
-        </Box>
+        <>
+          <Box paddingTop={2} paddingBottom={2}>
+            <Center>
+              <Stack direction="row">
+                <Badge variant="outline" colorScheme="green">
+                  Total Expense
+                </Badge>
+                <Badge variant="solid" colorScheme="green">
+                  {totalAmount}
+                </Badge>
+              </Stack>
+            </Center>
+          </Box>
+          <Box maxWidth={'100%'} overflow={'scroll'}>
+            <SortedTable columns={tableHeader} data={tableData} />
+          </Box>
+        </>
       ) : (
         <Box>
           <Flex
